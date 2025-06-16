@@ -43,6 +43,7 @@ while True:
     while True:
         print("Deseja realizar um novo cadastro? (1 - Sim / 2 - Não)")
         print("Deseja ver os dados dos usuários cadastrados? (3 - Sim / 4 - Não)")
+        print("Deseja gerenciar livros de um cartão já cadastrado? (5 - Sim)")
         resposta = input().strip()
         exibir_cabecalho()
 
@@ -71,8 +72,75 @@ while True:
             exibir_cabecalho()
             continue
 
+        elif resposta == "5":
+            try:
+                numero_digitado = int(input("Digite o número do cartão: "))
+                exibir_cabecalho()
+
+                if not caminho_livro.exists():
+                    print("Nenhum livro cadastrado ainda.")
+                    input("Pressione Enter para voltar ao menu...")
+                    continue
+
+                with caminho_livro.open("r") as arquivo:
+                    blocos = arquivo.read().strip().split("\n\n")
+
+                atualizado = False
+                for i, bloco in enumerate(blocos):
+                    if f"Numero do cartao: {numero_digitado}" in bloco:
+                        print("\n=== Dados atuais ===")
+                        print(bloco)
+                        livros_linha = [linha for linha in bloco.splitlines() if linha.startswith("Livros:")][0]
+                        livros_atuais = [livro.strip() for livro in livros_linha.replace("Livros:", "").split(",")]
+
+                        print("\nLivros atuais:", ", ".join(livros_atuais))
+                        print("1 - Adicionar livros")
+                        print("2 - Remover livros")
+                        escolha = input("Escolha a ação: ").strip()
+                        exibir_cabecalho()
+
+                        if escolha == "1":
+                            novos = input("Digite os livros que deseja adicionar (separados por vírgula): ")
+                            novos_livros = [livro.strip() for livro in novos.split(",")]
+                            livros_atuais.extend(novos_livros)
+
+                        elif escolha == "2":
+                            remover = input("Digite os livros que deseja remover (separados por vírgula): ")
+                            livros_a_remover = [livro.strip() for livro in remover.split(",")]
+                            livros_atuais = [livro for livro in livros_atuais if livro not in livros_a_remover]
+
+                        else:
+                            print("Opção inválida.")
+                            input("Pressione Enter para voltar ao menu...")
+                            break
+
+                        novo_bloco = ""
+                        for linha in bloco.splitlines():
+                            if linha.startswith("Livros:"):
+                                novo_bloco += "Livros: " + ", ".join(livros_atuais) + "\n"
+                            else:
+                                novo_bloco += linha + "\n"
+
+                        blocos[i] = novo_bloco.strip()
+                        atualizado = True
+                        break
+
+                if atualizado:
+                    with caminho_livro.open("w") as arquivo:
+                        arquivo.write("\n\n".join(blocos) + "\n\n")
+                    print("Atualização feita com sucesso!")
+                else:
+                    print("Número de cartão não encontrado.")
+
+            except ValueError:
+                print("Número inválido.")
+
+            input("Pressione Enter para voltar ao menu...")
+            exibir_cabecalho()
+            continue
+
         else:
-            print("Opção inválida. Por favor, digite 1, 2, 3 ou 4.")
+            print("Opção inválida. Por favor, digite 1, 2, 3, 4 ou 5.")
             exibir_cabecalho()
 
     try:
@@ -101,7 +169,6 @@ while True:
     print("")
     print(f"Nome: {nome}")
     print(f"\nSeu número de cartão é: {numero_cartao}")
-
 
     input("Pressione Enter para continuar...")
     exibir_cabecalho()
@@ -157,4 +224,4 @@ while True:
             exit()
         else:
             print("Opção inválida. Digite 1 para sim ou 2 para não.")
-            exibir_cabecalho()
+            exibir_cabecalho() 
